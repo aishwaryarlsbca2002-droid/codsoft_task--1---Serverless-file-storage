@@ -1,0 +1,7 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Sid": "S3Delete", "Effect": "Allow", "Action": "s3:DeleteObject", "Resource": "arn:aws:s3:::aishwarya-filestorage-8823/*" },
+    { "Sid": "DynamoReadDelete", "Effect": "Allow", "Action": ["dynamodb:GetItem", "dynamodb:DeleteItem"], "Resource": "arn:aws:dynamodb:us-east-1:ACCOUNT_ID:table/FileMetadata" }
+  ]
+}

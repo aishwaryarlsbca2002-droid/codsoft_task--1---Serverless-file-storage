@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filestore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#171a21;
+    --panel-2:#1d212b;
+    --border:#262b36;
+    --text:#e7e9ee;
+    --muted:#8b93a7;
+    --accent:#4f8cff;
+    --accent-soft:rgba(79,140,255,0.14);
+    --danger:#ef4444;
+    --danger-soft:rgba(239,68,68,0.12);
+    --ok:#3ddc97;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --mono:'JetBrains Mono',Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+  }
+  .hidden{display:none !important;}
+
+  /* ---------- Login view ---------- */
+  #login-view{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .login-card{
+    width:100%;
+    max-width:380px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:36px 32px;
+    text-align:center;
+  }
+  .login-mark{
+    width:44px;height:44px;
+    margin:0 auto 18px;
+    border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),#2f5fce);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:600;font-size:18px;
+    color:white;
+  }
+  .login-card h1{font-size:20px;margin:0 0 6px;letter-spacing:-0.01em;}
+  .login-card p{color:var(--muted);font-size:13.5px;margin:0 0 26px;line-height:1.5;}
+  .btn{
+    width:100%;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    padding:11px 16px;
+    border-radius:9px;
+    border:1px solid var(--border);
+    background:var(--panel-2);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:14px;font-weight:500;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .btn:hover{border-color:#3a4152;background:#232836;}
+  .btn-primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:white;
+  }
+  .btn-primary:hover{background:#3d78ea;border-color:#3d78ea;}
+  .btn + .btn{margin-top:10px;}
+  .divider{
+    display:flex;align-items:center;gap:10px;
+    color:var(--muted);font-size:12px;margin:16px 0;
+  }
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border);}
+
+  /* ---------- App view ---------- */
+  #app-view{max-width:840px;margin:0 auto;padding:28px 24px 60px;}
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding-bottom:22px;margin-bottom:22px;
+    border-bottom:1px solid var(--border);
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{
+    width:28px;height:28px;border-radius:7px;
+    background:linear-gradient(135deg,var(--accent),#2f5fce);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:600;font-size:12px;color:white;
+  }
+  .brand span{font-weight:600;font-size:15px;}
+  .who{display:flex;align-items:center;gap:14px;}
+  .who .email{color:var(--muted);font-size:13px;font-family:var(--mono);}
+  .btn-ghost{
+    background:none;border:1px solid var(--border);color:var(--muted);
+    padding:7px 12px;border-radius:7px;font-size:13px;cursor:pointer;font-family:var(--sans);
+  }
+  .btn-ghost:hover{color:var(--text);border-color:#3a4152;}
+
+  .upload-zone{
+    border:1.5px dashed var(--border);
+    border-radius:12px;
+    padding:26px;
+    text-align:center;
+    margin-bottom:28px;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .upload-zone:hover, .upload-zone.drag{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .upload-zone p{margin:0;color:var(--muted);font-size:13.5px;}
+  .upload-zone strong{color:var(--text);}
+  #file-input{display:none;}
+
+  .section-label{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 12px;
+  }
+
+  .file-row{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 16px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin-bottom:8px;
+  }
+  .file-icon{
+    width:34px;height:34px;flex-shrink:0;
+    border-radius:8px;
+    background:var(--panel-2);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:10px;color:var(--muted);
+  }
+  .file-meta{flex:1;min-width:0;}
+  .file-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .file-date{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .file-actions{display:flex;gap:6px;flex-shrink:0;}
+  .icon-btn{
+    width:32px;height:32px;
+    border-radius:7px;
+    border:1px solid var(--border);
+    background:var(--panel-2);
+    color:var(--muted);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;
+    transition:all .15s;
+  }
+  .icon-btn:hover{color:var(--text);border-color:#3a4152;}
+  .icon-btn.danger:hover{color:var(--danger);border-color:var(--danger);background:var(--danger-soft);}
+
+  .empty-state{
+    text-align:center;padding:50px 20px;color:var(--muted);font-size:13.5px;
+  }
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--panel-2);border:1px solid var(--border);
+    padding:11px 18px;border-radius:9px;font-size:13.5px;
+    display:flex;align-items:center;gap:8px;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);
+    opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;
+    z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+  .toast.ok{border-color:rgba(61,220,151,.4);}
+  .toast.err{border-color:rgba(239,68,68,.4);}
+
+  .banner{
+    background:var(--danger-soft);
+    border:1px solid rgba(239,68,68,.35);
+    color:#ff9d9d;
+    padding:10px 14px;
+    border-radius:8px;
+    font-size:13px;
+    margin-bottom:18px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- LOGIN VIEW -->
+  <div id="login-view">
+    <div class="login-card">
+      <div class="login-mark">FS</div>
+      <h1>Filestore</h1>
+      <p>Upload, manage, and share your files &mdash; securely, from anywhere.</p>
+      <button class="btn btn-primary" onclick="loginWithGoogle()">Continue with Google</button>
+      <div class="divider">or</div>
+      <button class="btn" onclick="loginWithCognito()">Sign in with email</button>
+    </div>
+  </div>
+
+  <!-- APP VIEW -->
+  <div id="app-view" class="hidden">
+    <div class="topbar">
+      <div class="brand">
+        <div class="mark">FS</div>
+        <span>Filestore</span>
+      </div>
+      <div class="who">
+        <span class="email" id="user-email"></span>
+        <button class="btn-ghost" onclick="logout()">Sign out</button>
+      </div>
+    </div>
+
+    <div id="error-banner" class="banner hidden"></div>
+
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+      <p><strong>Click to upload</strong> or drag a file here</p>
+      <input type="file" id="file-input" onchange="handleFileSelect(event)">
+    </div>
+
+    <p class="section-label">Your files</p>
+    <div id="file-list"></div>
+    <div id="empty-state" class="empty-state hidden">No files yet &mdash; upload your first one above.</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  // ---------------- Configuration ----------------
+  const COGNITO_DOMAIN = 'https://us-east-1kofxatbzk.auth.us-east-1.amazoncognito.com';
+  const CLIENT_ID      = '2fegkm9hdful10n3bt9b98cos0';
+  const REDIRECT_URI   = 'https://production.d2bq41gc2vr6dq.amplifyapp.com/';
+  const API_BASE       = 'https://gbwdzecnga.execute-api.us-east-1.amazonaws.com';
+
+  // ---------------- Storage helper (falls back to memory if localStorage is blocked) ----------------
+  const memStore = {};
+  const storage = {
+    get(k){ try { return localStorage.getItem(k); } catch(e){ return memStore[k] || null; } },
+    set(k,v){ try { localStorage.setItem(k,v); } catch(e){ memStore[k] = v; } },
+    remove(k){ try { localStorage.removeItem(k); } catch(e){ delete memStore[k]; } }
+  };
+
+  // ---------------- Auth: redirects ----------------
+  function loginWithGoogle(){
+    const url = `${COGNITO_DOMAIN}/oauth2/authorize?identity_provider=Google&client_id=${CLIENT_ID}&response_type=code&scope=openid+email&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+    window.location.href = url;
+  }
+  function loginWithCognito(){
+    const url = `${COGNITO_DOMAIN}/oauth2/authorize?client_id=${CLIENT_ID}&response_type=code&scope=openid+email&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+    window.location.href = url;
+  }
+  function logout(){
+    storage.remove('id_token');
+    storage.remove('access_token');
+    const url = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(REDIRECT_URI)}`;
+    window.location.href = url;
+  }
+
+  // ---------------- Auth: exchange code for tokens ----------------
+  async function exchangeCodeForTokens(code){
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: CLIENT_ID,
+      code: code,
+      redirect_uri: REDIRECT_URI
+    });
+    const res = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    if(!res.ok) throw new Error('Token exchange failed');
+    const data = await res.json();
+    storage.set('id_token', data.id_token);
+    storage.set('access_token', data.access_token);
+  }
+
+  function decodeEmailFromToken(idToken){
+    try{
+      const payload = JSON.parse(atob(idToken.split('.')[1]));
+      return payload.email || payload.sub || 'signed in';
+    }catch(e){ return 'signed in'; }
+  }
+
+  // ---------------- API helper ----------------
+  async function apiCall(path, options = {}){
+    const token = storage.get('id_token');
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      }
+    });
+    if(res.status === 401){
+      showError('Your session expired. Please sign in again.');
+      setTimeout(logout, 1800);
+      throw new Error('Unauthorized');
+    }
+    const data = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+
+  // ---------------- UI helpers ----------------
+  function showError(msg){
+    const el = document.getElementById('error-banner');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 5000);
+  }
+  function showToast(msg, type='ok'){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast show ${type}`;
+    setTimeout(() => t.classList.remove('show'), 2400);
+  }
+  function formatDate(iso){
+    try{
+      const d = new Date(iso);
+      return d.toLocaleString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    }catch(e){ return iso; }
+  }
+  function extOf(name){
+    const parts = name.split('.');
+    return parts.length > 1 ? parts.pop().toUpperCase().slice(0,4) : 'FILE';
+  }
+
+  // ---------------- File list ----------------
+  async function loadFiles(){
+    try{
+      const data = await apiCall('/files');
+      renderFiles(data.files || []);
+    }catch(e){
+      showError('Could not load your files.');
+    }
+  }
+
+  function renderFiles(files){
+    const list = document.getElementById('file-list');
+    const empty = document.getElementById('empty-state');
+    list.innerHTML = '';
+    if(!files.length){
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    files.sort((a,b) => new Date(b.uploadDate) - new Date(a.uploadDate));
+    files.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'file-row';
+      row.innerHTML = `
+        <div class="file-icon">${extOf(f.fileName)}</div>
+        <div class="file-meta">
+          <div class="file-name">${escapeHtml(f.fileName)}</div>
+          <div class="file-date">${formatDate(f.uploadDate)}</div>
+        </div>
+        <div class="file-actions">
+          <button class="icon-btn" title="Download" onclick="downloadFile('${f.fileId}')">&#8595;</button>
+          <button class="icon-btn" title="Share" onclick="shareFile('${f.fileId}')">&#128279;</button>
+          <button class="icon-btn danger" title="Delete" onclick="deleteFile('${f.fileId}')">&#10005;</button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ---------------- Upload ----------------
+  async function handleFileSelect(event){
+    const file = event.target.files[0];
+    if(!file) return;
+    try{
+      showToast('Uploading ' + file.name + '…');
+      const meta = await apiCall('/files', {
+        method: 'POST',
+        body: JSON.stringify({ fileName: file.name, contentType: file.type || 'application/octet-stream' })
+      });
+      const putRes = await fetch(meta.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        body: file
+      });
+      if(!putRes.ok) throw new Error('Upload to storage failed');
+      showToast('Uploaded successfully', 'ok');
+      loadFiles();
+    }catch(e){
+      showError('Upload failed: ' + e.message);
+    }finally{
+      event.target.value = '';
+    }
+  }
+
+  // ---------------- Download ----------------
+  async function downloadFile(fileId){
+    try{
+      const data = await apiCall(`/files/${fileId}`);
+      const a = document.createElement('a');
+      a.href = data.downloadUrl;
+      a.download = data.fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }catch(e){
+      showError('Download failed: ' + e.message);
+    }
+  }
+
+  // ---------------- Share ----------------
+  async function shareFile(fileId){
+    try{
+      const data = await apiCall(`/files/${fileId}/share`, { method: 'POST' });
+      await navigator.clipboard.writeText(data.shareUrl).catch(() => {});
+      showToast('Share link copied (valid 24h)', 'ok');
+    }catch(e){
+      showError('Could not create share link: ' + e.message);
+    }
+  }
+
+  // ---------------- Delete ----------------
+  async function deleteFile(fileId){
+    if(!confirm('Delete this file? This cannot be undone.')) return;
+    try{
+      await apiCall(`/files/${fileId}`, { method: 'DELETE' });
+      showToast('File deleted', 'ok');
+      loadFiles();
+    }catch(e){
+      showError('Delete failed: ' + e.message);
+    }
+  }
+
+  // ---------------- Boot sequence ----------------
+  async function boot(){
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+
+    if(code){
+      try{
+        await exchangeCodeForTokens(code);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }catch(e){
+        showError('Login failed. Please try again.');
+      }
+    }
+
+    const idToken = storage.get('id_token');
+    if(idToken){
+      document.getElementById('login-view').classList.add('hidden');
+      document.getElementById('app-view').classList.remove('hidden');
+      document.getElementById('user-email').textContent = decodeEmailFromToken(idToken);
+      loadFiles();
+    }else{
+      document.getElementById('login-view').classList.remove('hidden');
+      document.getElementById('app-view').classList.add('hidden');
+    }
+  }
+
+  // Basic drag-and-drop polish on the upload zone
+  const zone = document.getElementById('upload-zone');
+  ['dragover','dragenter'].forEach(evt => zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(evt => zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.remove('drag'); }));
+  zone.addEventListener('drop', e => {
+    const file = e.dataTransfer.files[0];
+    if(file){
+      document.getElementById('file-input').files = e.dataTransfer.files;
+      handleFileSelect({ target: { files: [file], value: '' } });
+    }
+  });
+
+  boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Sid": "S3ReadForShare", "Effect": "Allow", "Action": "s3:GetObject", "Resource": "arn:aws:s3:::aishwarya-filestorage-8823/*" },
+    { "Sid": "DynamoRead", "Effect": "Allow", "Action": "dynamodb:GetItem", "Resource": "arn:aws:dynamodb:us-east-1:ACCOUNT_ID:table/FileMetadata" }
+  ]
+}
